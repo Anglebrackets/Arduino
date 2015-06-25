@@ -253,6 +253,9 @@ long random(long, long);
 void randomSeed(unsigned int);
 long map(long, long, long, long, long);
 
+extern "C" void sleep_after_loop();
+extern "C" void sleep_disable();
+extern "C" void sleep_enable();
 
 #endif
 

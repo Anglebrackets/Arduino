@@ -87,6 +87,27 @@ extern "C" void __yield() {
 }
 extern "C" void yield(void) __attribute__ ((weak, alias("__yield")));
 
+
+bool sleep_if_enabled = false;
+bool sleep_enabled = false;
+
+extern "C" void __sleep_enable() {
+	sleep_enabled = true;
+}
+extern "C" void sleep_enable(void) __attribute__ ((weak, alias("__sleep_enable")));
+
+extern "C" void __sleep_disable() {
+	sleep_enabled = false;
+	esp_schedule();
+}
+extern "C" void sleep_disable(void) __attribute__ ((weak, alias("__sleep_disable")));
+
+
+extern "C" void __sleep_after_loop() {
+	sleep_if_enabled = true;
+}
+extern "C" void sleep_after_loop(void) __attribute__ ((weak, alias("__sleep_after_loop")));
+
 static void loop_wrapper() {
     static bool setup_done = false;
     if(!setup_done) {
@@ -94,8 +115,11 @@ static void loop_wrapper() {
         setup_done = true;
     }
     preloop_update_frequency();
+    sleep_if_enabled = false;
+    sleep_enabled = false;
     loop();
-    esp_schedule();
+    if (!(sleep_if_enabled && sleep_enabled))
+		esp_schedule();
 }
 
 static void loop_task(os_event_t *events) {
